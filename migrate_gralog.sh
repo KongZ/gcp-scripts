@@ -12,7 +12,7 @@ do
    index=$(awk '{print $2}' <<< "$line")
    echo "${index} was ${status}"
    if [ "$status" = "close" ]; then
-      o=$(curl -XPOST -u "${token}" -H "X-Requested-By: graylog" "http://${graylog}/api/system/indexer/indices/${index}/reopen")
+      o=$(curl -XPOST -sS -u "${token}" -H "X-Requested-By: graylog" "http://${graylog}/api/system/indexer/indices/${index}/reopen")
       echo "$(date) Opened ${index} ${o}"
       sleep 10
       while curl -sS "${elasticsearch}/_cat/shards" | grep "${index}" | grep -v STARTED ;
@@ -26,12 +26,12 @@ do
             failedIndex=$(awk '{print $1}' <<< "$l")
             failedShard=$(awk '{print $2}' <<< "$l")
             echo "Shards $failedIndex/$failedShard failed"
-            c=$(curl -XPOST -u "${token}" -H "X-Requested-By: graylog" "http://${graylog}/api/system/indexer/indices/${index}/close")
+            c=$(curl -XPOST -sS -u "${token}" -H "X-Requested-By: graylog" "http://${graylog}/api/system/indexer/indices/${index}/close")
             echo "$(date) Closed ${index} ${c}"
          fi
          done
       done
-      c=$(curl -XPOST -u "${token}" -H "X-Requested-By: graylog" "http://${graylog}/api/system/indexer/indices/${index}/close")
+      c=$(curl -XPOST -sS -u "${token}" -H "X-Requested-By: graylog" "http://${graylog}/api/system/indexer/indices/${index}/close")
       echo "$(date) Closed ${index} ${c}"
    fi
 done <<< "$lines"
